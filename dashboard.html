@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | ParkSmart</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+    <div class="bg-gradient"></div>
+    <nav>
+        <div class="logo">ParkSmart</div>
+        <div class="nav-links">
+            <span id="welcomeMsg"></span>
+            <button onclick="sessionStorage.clear(); location.href='index.html';" class="btn btn-primary"
+                style="padding: 0.5rem 1rem;">Logout</button>
+        </div>
+    </nav>
+
+    <main class="container">
+        <h1>Available Slots</h1>
+        <div id="slotGrid" class="slot-grid"></div>
+
+        <h1 style="margin-top: 4rem;">Your Active Bookings</h1>
+        <div id="bookingList" class="slot-grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div id="bookingModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 100; justify-content: center; align-items: center;">
+        <div class="glass-card" style="width: 90%; max-width: 400px;">
+            <h2>Book Slot <span id="modalSlotNumber"></span></h2>
+            <form id="bookForm">
+                <input type="hidden" id="modalSlotId">
+                <div class="input-group">
+                    <label>Vehicle Number</label>
+                    <input type="text" id="vNumber" placeholder="ABC-1234" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Confirm</button>
+                <button type="button" onclick="closeModal()" class="btn"
+                    style="width:100%; margin-top:1rem; border:1px solid var(--glass-border);">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="assets/js/db.js"></script>
+    <script>
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if (!user) location.href = 'login.html';
+        document.getElementById('welcomeMsg').innerText = `Hello, ${user.name}`;
+
+        function render() {
+            const data = DB.getData();
+            const grid = document.getElementById('slotGrid');
+            grid.innerHTML = data.slots.map(s => `
+                <div class="slot ${s.status}" onclick="openModal(${s.id}, '${s.number}')">
+                    <span class="slot-number">${s.number}</span>
+                    <span class="slot-type">${s.type}</span>
+                </div>
+            `).join('');
+
+            const bList = document.getElementById('bookingList');
+            const myBookings = data.bookings.filter(b => b.userId === user.id && b.status === 'active');
+            bList.innerHTML = myBookings.map(b => `
+                <div class="glass-card">
+                    <h3>Slot: ${b.slotNumber}</h3>
+                    <p>Vehicle: ${b.vehicleNumber}</p>
+                    <p>Entry: ${b.entryTime}</p>
+                    <button onclick="release(${b.id}, ${b.slotId})" class="btn btn-primary" style="width:100%; margin-top:1rem;">Release</button>
+                </div>
+            `).join('');
+        }
+
+        function openModal(id, num) {
+            const data = DB.getData();
+            if (data.slots.find(s => s.id === id).status !== 'available') return;
+            document.getElementById('modalSlotId').value = id;
+            document.getElementById('modalSlotNumber').innerText = num;
+            document.getElementById('bookingModal').style.display = 'flex';
+        }
+
+        function closeModal() { document.getElementById('bookingModal').style.display = 'none'; }
+
+        document.getElementById('bookForm').onsubmit = (e) => {
+            e.preventDefault();
+            DB.bookSlot(document.getElementById('modalSlotId').value, document.getElementById('vNumber').value);
+            closeModal();
+            render();
+        };
+
+        function release(bid, sid) {
+            const data = DB.getData();
+            data.bookings.find(b => b.id === bid).status = 'completed';
+            data.slots.find(s => s.id === sid).status = 'available';
+            DB.saveData(data);
+            render();
+        }
+
+        render();
+    </script>
+</body>
+
+</html>
