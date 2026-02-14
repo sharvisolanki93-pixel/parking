@@ -1,16 +1,19 @@
-<?php
-$host = 'localhost';
-$dbname = 'parking_db';
-$username = 'root';
-$password = '';
+// Use Environment Variables for Vercel (Local fallback to XAMPP)
+$host = getenv('DB_HOST') ?: 'localhost';
+$dbname = getenv('DB_NAME') ?: 'parking_db';
+$username = getenv('DB_USER') ?: 'root';
+$password = getenv('DB_PASSWORD') ?: '';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    die("Connection failed: " . $e->getMessage());
+    // If on local, maybe the DB name isn't created yet
+    die("Connection failed. Have you run setup_db.php? Error: " . $e->getMessage());
 }
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 ?>

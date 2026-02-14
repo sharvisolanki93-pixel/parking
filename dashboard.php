@@ -14,27 +14,9 @@ $slots = $stmt->fetchAll();
 $stmt = $pdo->prepare("SELECT b.*, s.slot_number FROM bookings b JOIN slots s ON b.slot_id = s.id WHERE b.user_id = ? AND b.status = 'active'");
 $stmt->execute([$_SESSION['user_id']]);
 $active_bookings = $stmt->fetchAll();
+
+include 'includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Dashboard | ParkSmart</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-</head>
-<body>
-    <div class="bg-gradient"></div>
-    <div class="sphere sphere-1" style="width: 600px; height: 600px; top: -200px; left: -200px;"></div>
-    
-    <nav>
-        <div class="logo">ParkSmart</div>
-        <div class="nav-links">
-            <span>Welcome, <strong><?php echo $_SESSION['user_name']; ?></strong></span>
-            <a href="dashboard.php">Dashboard</a>
-            <a href="logout.php" class="btn btn-primary" style="padding: 0.5rem 1rem;">Logout</a>
-        </div>
-    </nav>
 
     <main class="container">
         <header style="margin-bottom: 3rem;">
@@ -111,5 +93,5 @@ $active_bookings = $stmt->fetchAll();
             document.getElementById('bookingModal').style.display = 'none';
         }
     </script>
-</body>
-</html>
+
+<?php include 'includes/footer.php'; ?>
