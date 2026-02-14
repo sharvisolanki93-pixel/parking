@@ -1,13 +1,16 @@
 {
   "functions": {
-    "**/*.php": {
+    "*.php": {
+      "runtime": "vercel-php@0.7.1"
+    },
+    "includes/*.php": {
       "runtime": "vercel-php@0.7.1"
     }
   },
   "routes": [
     {
-      "src": "/(assets|includes)/(.*)",
-      "dest": "/$1/$2"
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
     },
     {
       "src": "/(.*)",
